@@ -1,0 +1,261 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=## Zadanie\nJako agent AI wykonaj wszystkie oczekiwane obowiązki. Następnie podsumuj emailoraz opisz podjętą akcję, wyjaśnij dlaczego ją podjąłeś.\n\n## Dane wiadomości\nfrom: {{$json.from.text }}\ndate: {{ $json.headers.date }}\nid: {{ $json.id }}\nthreadId: {{ $json.threadId }}\nsubject: {{ $json.headers.subject }}\ntekst wiadomości: {{ $json.text }}\n\n",
+        "options": {
+          "systemMessage": "\n## Wprowadzenie\nJesteś agentem AI, który ma za zadanie pomóc w realizacji polityki \"zero inbox\" zarządzając skrzynką mailową.\nBędziesz analizował wiadomości e-mail i podejmował odpowiednie działania w zależności od ich treści i kontekstu.\nMasz to dyspozycji narzędzia, które mogą pomóc w tej pracy. Będziesz pracował z API gmail.\n\n## Narzędzia\n1. archive-email: narzędzie do usunięcia wiadomości etykiety inbox\n2. mark-read: narzędzie do oznaczenie wiadomości jako przeczytane\n3. label-email: narzędzie do etykietowania wiadomości e-mail, które nadaje etykietę \"ai-labeled\"\n## Procedura \nPrzeprowadź analizę wiadomości e-mail i podejmij wszystkie akcje TYLKO wtedy gdy spełniony jest chociaż jeden z warunków (znak logiczny OR).\n#### Warunki\n   1. Jest wiadomością typu newsletter.\n   2. Jest powiadomieniem z zakresu bezpieczeństwa (np. \"Doszło do logowania z innego urządzenia\")\n   3. Jest potwierdzeniem rejestracji, subskrypcji, zakupu, dostawy towaru. \n   4. Wszystkie wiadomości przesłane z Linked In\n#### Akcja\n1. Archiwizuj wiadomość (mark-read + archive-email)\n2. Dodaj etykietę \"ai-labeled\" (label-email)\n\n#### Wyłączenia\nJeśli wiadomość jest osobista i jako forward zawiera spełnia warunki dla pojęcia akcji nie podejmuj jej.\n\nUWAGA: jeśli wiadomość nie spełnia opisanych warunków nie podejmuj żadnej akcji"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        680,
+        0
+      ],
+      "id": "afcb2593-5891-469e-9e8f-80db1a0684c0",
+      "name": "AI Agent",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', ``, 'string') }}",
+        "labelIds": [
+          "Label_7889612262545805645"
+        ]
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        620,
+        220
+      ],
+      "id": "7c809598-4f02-4903-b2f6-dbb0fb94c8cf",
+      "name": "label-email",
+      "webhookId": "528fe384-289d-4e7a-b0b1-f516d12ab354",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "lTsJM3aYKrZYdq4H",
+          "name": "tm-personal"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "removeLabels",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', ``, 'string') }}",
+        "labelIds": [
+          "INBOX"
+        ]
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        780,
+        220
+      ],
+      "id": "7c3475e8-4eb8-4237-9133-5f86316542e5",
+      "name": "archive-email",
+      "webhookId": "15761db8-249f-48d7-825e-bd21510fefd5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "lTsJM3aYKrZYdq4H",
+          "name": "tm-personal"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 10,
+        "simple": false,
+        "filters": {
+          "q": "=-is:starred AND label:inbox AND before:{{ $json.delay.toDateTime().format('yyyy/MM/dd') }}"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        440,
+        0
+      ],
+      "id": "b705b949-0800-4c64-aca3-a00bb67734f4",
+      "name": "get-inbox-content",
+      "webhookId": "d9478b7f-e5b4-472a-b67e-3bc73935c8c3",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "lTsJM3aYKrZYdq4H",
+          "name": "tm-personal"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "markAsRead",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', ``, 'string') }}"
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        960,
+        220
+      ],
+      "id": "3839993b-16e0-4d36-bf74-17b7ddbf7e38",
+      "name": "mark-as-read",
+      "webhookId": "79e5a158-f6f2-4208-ba04-61ec2f0c1618",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "lTsJM3aYKrZYdq4H",
+          "name": "tm-personal"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        460,
+        220
+      ],
+      "id": "6b8f7c1a-9666-4718-8440-5f3c5614bd3d",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "nEf9UvymtCn5xbqP",
+          "name": "tadeusz-miesowicz-open-ai"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "subtractFromDate",
+        "magnitude": "={{ $today }}",
+        "duration": 2,
+        "outputFieldName": "delay",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "id": "3362d97d-a6c6-42ce-b0e6-c9d0d8ff42c2",
+      "name": "delay"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 22
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a559b385-b56f-4cf2-bd2b-572f55c82770",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "connections": {
+    "label-email": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "archive-email": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get-inbox-content": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "mark-as-read": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "delay": {
+      "main": [
+        [
+          {
+            "node": "get-inbox-content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "delay",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "d8a6f612515ac7d1839cda4f4caf1e5ac52e54a1576fe1592986ccf2a645fea9"
+  }
+}

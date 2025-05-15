@@ -14,4 +14,4 @@ Przykładowy agent AI n8n stworzony na potrzeby prezentacji na konferencji Legal
 ## Uwaga ⚠️
 1. Węzeł `get-inbox-content` jest domyślnie skonfigurowany tak, aby analizować tylko **10 wiadomości**. Jest to ustawienie celowe, ponieważ workflow ma charakter edukacyjny i testowy. Jeśli planujesz wykorzystać go w praktyce, po przetestowaniu zmień to ustawienie.
 2. Węzeł `delay` służy do określenia, sprzed ilu dni analizowane są wiadomości (domyślnie wiadomości otrzymane **przedwczoraj** lub wcześniej).
-3. Węzeł `system-message` dostosuj do swoich potrzeb – możesz modyfikować warunki i eksperymentować z różnymi narzędziami.
+3. W węźle `agent AI` `system-message` dostosuj do swoich potrzeb – możesz modyfikować warunki i eksperymentować z różnymi narzędziami.
